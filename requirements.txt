@@ -1,8 +1,4 @@
-cite2c==0.2.1
-joblib
-jupyter
-lime==0.2.0.1
+luguru
 numpy
 scikit-learn
 sympy==1.6.2
-xgboost
