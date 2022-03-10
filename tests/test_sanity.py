@@ -1,22 +1,17 @@
-import argparse
-import csv
-import pickle
-import sys
-from time import gmtime, strftime
-
-from sklearn.metrics import mean_squared_error, r2_score
-from sklearn.linear_model import LinearRegression
-
 from sklearn.datasets import load_boston
+from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 
-import symbolic_pursuit.logger as log
 from symbolic_pursuit.models import SymbolicRegressor
 
 
 def test_args() -> None:
     symbolic_model = SymbolicRegressor(
-        loss_tol=1000, ratio_tol=2, random_seed=0, maxiter=10, eps=0.1,
+        loss_tol=1000,
+        ratio_tol=2,
+        random_seed=0,
+        maxiter=10,
+        eps=0.1,
     )
 
     assert symbolic_model.loss_tol == 1000
@@ -34,6 +29,9 @@ def test_sanity() -> None:
 
     model.fit(X_train, y_train)
     symbolic_model = SymbolicRegressor(
-        loss_tol=1000, ratio_tol=2, random_seed=0, maxiter=10,
+        loss_tol=1000,
+        ratio_tol=2,
+        random_seed=0,
+        maxiter=10,
     )
     symbolic_model.fit(model.predict, X_test)

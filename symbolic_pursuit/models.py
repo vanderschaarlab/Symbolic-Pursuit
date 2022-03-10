@@ -87,7 +87,12 @@ class SymbolicRegressor:
 
     def optimize_CG(self, loss, theta_0):
         # Encodes the parameters of the optimal parameters of an additional term inside theta_opt
-        opt = minimize(loss, theta_0, method="CG", options={"maxiter": self.maxiter},)
+        opt = minimize(
+            loss,
+            theta_0,
+            method="CG",
+            options={"maxiter": self.maxiter},
+        )
         theta_opt = opt.x
         loss_ = opt.fun
         return theta_opt, loss_
@@ -265,7 +270,8 @@ class SymbolicRegressor:
             else:
                 log.info(100 * "=")
                 log.info(
-                    f"The algorithm stopped because it was unable to find a term that significantly decreases the loss. Loss ratio: {best_loss / current_loss}"
+                    "The algorithm stopped because it was unable to find "
+                    f"a term that significantly decreases the loss. Loss ratio: {best_loss / current_loss}"
                 )
                 break
             log.info(100 * "=")

@@ -4,19 +4,13 @@
 from __future__ import absolute_import, division, print_function
 
 import copy
-import itertools
-import os
-import sys
 import json
+import sys
 import warnings
 
 import numpy as np
-import pandas as pd
-import scipy as sc
-from mpmath import taylor, mp
-from scipy.special import digamma, gamma
-from sympy import lambdify, Symbol, simplify, hyperexpand, meijerg
-from sympy.utilities.autowrap import ufuncify
+from mpmath import mp, taylor
+from sympy import Symbol, hyperexpand, lambdify, meijerg, simplify
 
 warnings.filterwarnings("ignore")
 if not sys.warnoptions:
