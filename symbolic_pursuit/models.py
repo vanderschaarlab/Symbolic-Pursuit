@@ -10,7 +10,7 @@ from symbolic_pursuit.pysymbolic.models.special_functions import MeijerG
 
 
 def load_h():
-    h = {
+    return {
         "hyper_1": (np.array([0.5, 0.0]), [1, 0, 0, 2]),  # Parent of sin , cos, sh, ch
         "hyper_2": (
             np.array([2.0, 2.0, 2.0, 1.0]),
@@ -21,16 +21,6 @@ def load_h():
             [2, 1, 2, 3],
         ),  # Parent of exp, Gamma, gamma
     }
-    """
-        'hyper_4': (np.array([1.0, 1.2, 3.0,
-                              3.3, 0.4, 1.5]),
-                    [2, 2, 3, 3]),  # Parent of ln, arcsin, arctg
-        'hyper_5': (np.array([1.1,
-                              1.1, 0.5, -0.5]),
-                    [2, 0, 1, 3])  # Parent of Bessel functions
-    """
-
-    return h
 
 
 # Miscellaneous functions
@@ -62,6 +52,7 @@ class SymbolicRegressor:
         maxiter=100,
         eps=1.0e-5,
         random_seed=42,
+        baselines=list(load_h().keys()),
     ):
         self.terms_list = []  # List of all the terms in the model
         self.loss_list = []  # List of residual losses associated to each term
@@ -77,6 +68,8 @@ class SymbolicRegressor:
         self.maxiter = maxiter  # Maximum number of iterations for optimization
         self.eps = eps  # Small number used for numerical stability
         self.random_seed = random_seed  # Random seed for reproducibility
+        self.baselines = baselines
+
         log.info(
             "Model created with the following hyperparameters :"
             + "\n loss_tol={} \n ratio_tol={} "
@@ -94,12 +87,7 @@ class SymbolicRegressor:
 
     def optimize_CG(self, loss, theta_0):
         # Encodes the parameters of the optimal parameters of an additional term inside theta_opt
-        opt = minimize(
-            loss,
-            theta_0,
-            method="CG",
-            options={"maxiter": self.maxiter},
-        )
+        opt = minimize(loss, theta_0, method="CG", options={"maxiter": self.maxiter},)
         theta_opt = opt.x
         loss_ = opt.fun
         return theta_opt, loss_
@@ -246,11 +234,11 @@ class SymbolicRegressor:
             log.info(100 * "%")
             log.info(f"Now working on term number {count}.")
 
-            for k in range(len(h_dic)):
+            for key in self.baselines:
                 log.info(100 * "=")
-                log.info(f"Now working on hyperparameter tree number {k + 1}.")
+                log.info(f"Now working on hyperparameter tree number {key}.")
 
-                theta_g0, g_order = h_dic["hyper_" + str(k + 1)]
+                theta_g0, g_order = h_dic[key]
                 theta_0 = np.concatenate((theta_g0, v0, [w0]))
                 new_meijer_g, new_v, new_w, new_loss = self.tune_new_term(
                     X, g_order, theta_0
@@ -277,8 +265,7 @@ class SymbolicRegressor:
             else:
                 log.info(100 * "=")
                 log.info(
-                    "The algorithm stopped because it was unable to find a term"
-                    " that significantly decreases the loss."
+                    f"The algorithm stopped because it was unable to find a term that significantly decreases the loss. Loss ratio: {best_loss / current_loss}"
                 )
                 break
             log.info(100 * "=")

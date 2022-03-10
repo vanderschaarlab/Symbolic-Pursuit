@@ -203,9 +203,7 @@ def stretch_G_params(G):
             np.concatenate(G.b_q).reshape((-1, 1)),
             np.array(G._const).reshape((-1, 1)),
         ]
-    ).reshape(
-        -1,
-    )
+    ).reshape(-1,)
 
     return stretched_params_
 

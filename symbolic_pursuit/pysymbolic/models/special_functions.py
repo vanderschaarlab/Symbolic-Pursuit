@@ -7,22 +7,43 @@ import copy
 import itertools
 import os
 import sys
-import time
+import json
 import warnings
 
 import numpy as np
 import pandas as pd
 import scipy as sc
-from mpmath import *
+from mpmath import taylor, mp
 from scipy.special import digamma, gamma
-from sympy import *
-
-# from sympy.printing.theanocode import theano_function
+from sympy import lambdify, Symbol, simplify, hyperexpand, meijerg
 from sympy.utilities.autowrap import ufuncify
 
 warnings.filterwarnings("ignore")
 if not sys.warnoptions:
     warnings.simplefilter("ignore")
+
+lambdify_cache = {}
+approx_expression_cache = {}
+
+
+def lambdify_wrapper(expr: str):
+    if expr in lambdify_cache:
+        fn = lambdify_cache[expr]
+        return fn
+
+    x = Symbol("x", real=True)
+    evaluater_ = lambdify([x], expr)
+
+    lambdify_cache[expr] = evaluater_
+
+    return evaluater_
+
+
+class NumpyEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return json.JSONEncoder.default(self, obj)
 
 
 class MeijerG:
@@ -97,15 +118,13 @@ class MeijerG:
         """
         Returns a symbolic expression for the Meijer G-function encapsulated in the class.
         """
-        self.expr = hyperexpand(meijerg(self.a_p, self.b_q, self._const * x))
-
-        return self.expr
+        return hyperexpand(meijerg(self.a_p, self.b_q, self._const * x))
 
     def math_expr(self, x):
 
         """
         Returns a symbolic expression for the Meijer G-function that is
-        compatabile with data types used by the math library
+        compatible with data types used by the math library
         """
         a_p_ = [list(self.a_p[k]) for k in range(len(self.a_p))]
         b_q_ = [list(self.b_q[k]) for k in range(len(self.b_q))]
@@ -113,34 +132,44 @@ class MeijerG:
         return mp.meijerg(a_p_, b_q_, self._const * x)
 
     def approx_expression(self, midpoint=0.5):
-
         """
         Returns a polynomial approximate expression for the Meijer G-function using a Taylor series approximation
         """
+        key_dict = {
+            "a_p": self.a_p,
+            "b_p": self.b_q,
+            "const": self._const,
+            "midpoint": midpoint,
+            "approximation_order": self.approximation_order,
+        }
+        key = json.dumps(key_dict, cls=NumpyEncoder)
+
+        if key in approx_expression_cache:
+            return approx_expression_cache[key]
         x = Symbol("x", real=True)
 
-        self.Taylor_poly_ = taylor(self.math_expr, midpoint, self.approximation_order)
-        self.coeffp = self.Taylor_poly_[::-1]
+        Taylor_poly_ = taylor(self.math_expr, midpoint, self.approximation_order)
+        coeffp = Taylor_poly_[::-1]
 
-        self.approx_expr = 0
+        approx_expr = 0
 
         for k in range(self.approximation_order):
 
-            self.approx_expr = self.approx_expr + self.coeffp[k] * (
+            approx_expr = approx_expr + coeffp[k] * (
                 (x - midpoint) ** (self.approximation_order - k)
             )
 
-        self.approx_expr = self.approx_expr + self.coeffp[-1]
-        self.approx_expr = simplify(self.approx_expr)
+        approx_expr = approx_expr + coeffp[-1]
+        approx_expr = simplify(approx_expr)
 
-        return self.approx_expr
+        approx_expression_cache[key] = approx_expr
+
+        return approx_expr
 
     def evaluate(self, X):
         """
         Evaluates the Meijer G function for the input vector X
         """
-        x = Symbol("x", real=True)
-
         if self.evaluation_mode == "eval":
 
             Y = np.array(
@@ -154,19 +183,9 @@ class MeijerG:
                 )
             )
 
-        elif self.evaluation_mode in ["numpy", "cython", "theano"]:
-
-            evaluators_ = {
-                "numpy": lambdify([x], self.approx_expression(), modules=["math"]),
-                "cython": lambdify(
-                    [x], self.approx_expression(), modules=["math"]
-                ),  # ufuncify([x], self.approx_expression()),
-                "theano": lambdify([x], self.approx_expression(), modules=["math"]),
-            }  # theano_function([x], [self.approx_expression()])}
-
-            evaluater_ = evaluators_[self.evaluation_mode]
-            Y = np.array([evaluater_(X[k]) for k in range(len(X))])
-
+        else:
+            evaluater_ = lambdify_wrapper(self.approx_expression())
+            Y = evaluater_(X)
         return np.real(Y)
 
     def gradients(self, x):

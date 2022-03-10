@@ -43,12 +43,7 @@ def get_predictive_model(
         model = pred_model()
 
     elif model_type == "sklearn":
-        model = MLPClassifier(
-            hidden_layer_sizes=(
-                200,
-                200,
-            )
-        )
+        model = MLPClassifier(hidden_layer_sizes=(200, 200,))
 
     if (model_type == "keras") or (model_type == "modified_keras"):
 

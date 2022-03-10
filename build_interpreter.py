@@ -11,7 +11,7 @@ from datasets.data_loader_UCI import data_loader, mixup
 from experiments.train_model import train_model
 from symbolic_pursuit.models import SymbolicRegressor
 
-logger.add(sink=sys.stderr, level="INFO")
+log.add(sink=sys.stderr, level="INFO")
 
 
 def init_arg():
