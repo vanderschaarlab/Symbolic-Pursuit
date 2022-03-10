@@ -145,7 +145,7 @@ class SymbolicRegressor:
         # Prints the projections appearing in the symbolic expression
         proj_list = self.get_projections()
         for k in range(len(proj_list)):
-            log.info(f"P{str(k + 1)} = {proj_list[k]}")
+            print(f"P{str(k + 1)} = {proj_list[k]}")
 
     def get_taylor(self, x0, approx_order):
         # Returns the Taylor expansion around x0 of order approx_order for our model
