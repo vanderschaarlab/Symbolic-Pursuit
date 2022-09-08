@@ -1,6 +1,6 @@
 # Symbolic Pursuit
 [![Tests](https://github.com/vanderschaarlab/Symbolic-Pursuit/actions/workflows/test.yml/badge.svg)](https://github.com/vanderschaarlab/Symbolic-Pursuit/actions/workflows/test.yml)
-[![Downloads](https://img.shields.io/pypi/dd/symbolic_pursuit)](https://pypi.org/project/symbolic_pursuit/)
+[![Downloads](https://img.shields.io/pypi/dd/symbolic-pursuit)](https://pypi.org/project/symbolic-pursuit/)
 [![pdf](https://img.shields.io/badge/paper-NeurIPS%202020-orange)](https://arxiv.org/abs/2011.08596)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
